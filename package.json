@@ -1,0 +1,33 @@
+{
+  "dependencies": {
+    "compression": "^1.8.1",
+    "cookie-parser": "^1.4.7",
+    "dotenv": "^17.4.2",
+    "express": "^5.2.1",
+    "helmet": "^8.1.0",
+    "jsonwebtoken": "^9.0.3",
+    "mongoose": "^9.6.2",
+    "morgan": "^1.10.1",
+    "nodemailer": "^8.0.7"
+  },
+  "name": "mailora-api",
+  "version": "1.0.0",
+  "description": "REST API for Mailora — handles auth, API key management, and campaign ingestion",
+  "main": "index.js",
+  "devDependencies": {},
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZaryabAli-09/mailora-api.git"
+  },
+  "keywords": [],
+  "author": "",
+  "license": "ISC",
+  "type": "module",
+  "bugs": {
+    "url": "https://github.com/ZaryabAli-09/mailora-api/issues"
+  },
+  "homepage": "https://github.com/ZaryabAli-09/mailora-api#readme"
+}
