@@ -6,10 +6,14 @@ export function successResponse(res, data = null, message = 'Success', statusCod
   })
 }
 
-export function errorResponse(res, message = 'Error', statusCode = 400, errors = null) {
+export function errorResponse(res, message = 'Error', statusCode = 400, errors = null, errorType = null) {
   const payload = {
     success: false,
     message,
+  }
+
+  if (errorType) {
+    payload.errorType = errorType
   }
 
   if (errors !== null) {
