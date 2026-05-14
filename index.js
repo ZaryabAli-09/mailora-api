@@ -1,5 +1,6 @@
 import express from 'express'
 import dotenv from 'dotenv'
+import { errorHandler, notFoundHandler } from './utils/errorMiddleware.js'
 
 
 dotenv.config()
@@ -15,10 +16,8 @@ app.get('/health', (req, res) => {
   res.json({ status: 'ok', service: 'mailora-api' })
 })
 
-app.use((err, req, res, next) => {
-  console.error(err.stack)
-  res.status(500).json({ success: false, message: 'Internal server error' })
-})
+app.use(notFoundHandler)
+app.use(errorHandler)
 
 app.listen(PORT, () => {
   console.log(`mailora-api running on port ${PORT}`)
