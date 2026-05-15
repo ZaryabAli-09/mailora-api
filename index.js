@@ -8,9 +8,9 @@ import morgan from "morgan";
 import cookieParser from "cookie-parser";
 
 // db config, error middlewares and response handlers imports
-import connectDB from "./config/db.js";
 import { errorMiddleware } from "./middlewares/errorMiddleware.js";
 import { ApiResponse } from "./utils/apiResponse.js";
+import { connectDB } from "./configs/dbConnection.js";
 
 // routes imports
 
