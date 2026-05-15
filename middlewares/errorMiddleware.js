@@ -1,6 +1,7 @@
-// errorMiddleware.js - used to handle errors thrown in the controllers and send appropriate responses to the client
 
 import { ApiError } from "../utils/apiError";
+
+// errorMiddleware.js - used to handle errors thrown in the controllers and send appropriate responses to the client
 
 const errorMiddleware = (err, req, res, next) => {
 if(err instanceof ApiError) {
