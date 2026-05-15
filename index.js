@@ -85,8 +85,7 @@ app.use(errorMiddleware);
 async function startServer() {
   try {
     app.listen(PORT, () => {
-      console.log(`
-    🚀 ${process.env.API_NAME} is running on port ${PORT}`);
+      console.log(`🚀 ${process.env.API_NAME} is running on port ${PORT}`);
     });
 
     await connectDB();
