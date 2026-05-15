@@ -2,6 +2,7 @@
   "dependencies": {
     "compression": "^1.8.1",
     "cookie-parser": "^1.4.7",
+    "cors": "^2.8.6",
     "dotenv": "^17.4.2",
     "express": "^5.2.1",
     "helmet": "^8.1.0",
@@ -14,7 +15,6 @@
   "version": "1.0.0",
   "description": "REST API for Mailora — handles auth, API key management, and campaign ingestion",
   "main": "index.js",
-  "devDependencies": {},
   "scripts": {
     "test": "echo \"Error: no test specified\" && exit 1"
   },
