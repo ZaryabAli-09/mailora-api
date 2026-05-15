@@ -1,4 +1,3 @@
-
 // apiError.js - used to throw errors in the controllers and handle them in the error middleware
 
 
