@@ -81,17 +81,15 @@ app.use((req, res, next) => {
 app.use(errorMiddleware);
 
 async function startServer() {
-  app.listen(PORT, () => {
-    console.log(`
-    🚀 ${process.env.API_NAME} is running on port ${PORT}`);
-  });
-
   try {
+    app.listen(PORT, () => {
+      console.log(`
+    🚀 ${process.env.API_NAME} is running on port ${PORT}`);
+    });
+
     await connectDB();
-    console.log("🟢 Connected to MongoDB");
   } catch (error) {
-    console.error("🔴 Failed to connect to MongoDB", error);
-    process.exit(1); // exit with failure
+    console.error("Failed to start server", error);
   }
 }
 
