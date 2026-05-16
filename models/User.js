@@ -1,5 +1,5 @@
-import mongoose from 'mongoose'
-import crypto from 'crypto'
+import mongoose from "mongoose";
+import crypto from "crypto";
 
 const userSchema = new mongoose.Schema(
   {
@@ -22,13 +22,13 @@ const userSchema = new mongoose.Schema(
     },
     role: {
       type: String,
-      enum: ['user', 'admin'],
-      default: 'user',
+      enum: ["user", "admin"],
+      default: "user",
     },
     account: {
       type: String,
-      enum: ['activated', 'suspended'],
-      default: 'activated',
+      enum: ["activated", "suspended"],
+      default: "activated",
     },
     apiKey: {
       type: String,
@@ -45,7 +45,7 @@ const userSchema = new mongoose.Schema(
       default: Date.now,
     },
   },
-  { timestamps: true }
-)
+  { timestamps: true },
+);
 
-export default mongoose.model('User', userSchema)
+export default mongoose.model("User", userSchema);
