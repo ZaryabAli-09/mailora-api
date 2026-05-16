@@ -13,6 +13,7 @@ import { ApiResponse } from "./utils/apiResponse.js";
 import { connectDB } from "./configs/dbConnection.js";
 
 // routes imports
+import authRoutes from "./routes/authRoutes.js";
 
 // load environment variables
 if (process.env.NODE_ENV !== "production") {
@@ -69,6 +70,9 @@ app.get("/", (req, res) => {
     ],
   });
 });
+
+// routes
+app.use("/api", authRoutes);
 
 // 404 handler for undefined routes
 app.use((req, res, next) => {
