@@ -38,19 +38,3 @@ export function protectRoute(req, res, next) {
     );
   }
 }
-
-export function adminOnly(req, res, next) {
-  if (!req.user) {
-    return errorResponse(
-      res,
-      "User not authenticated",
-      401,
-      null,
-      "UnauthorizedError",
-    );
-  }
-
-  // Note: Would need to fetch user from DB to check role
-  // For now, this is a placeholder
-  next();
-}
