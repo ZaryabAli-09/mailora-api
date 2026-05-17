@@ -72,7 +72,7 @@ app.get("/", (req, res) => {
 });
 
 // routes
-app.use("/api", authRoutes);
+app.use("/api/v1/auth", authRoutes);
 
 // 404 handler for undefined routes
 app.use((req, res, next) => {
