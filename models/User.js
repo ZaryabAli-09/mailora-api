@@ -40,10 +40,6 @@ const userSchema = new mongoose.Schema(
       code: String,
       expiresAt: Date,
     },
-    createdAt: {
-      type: Date,
-      default: Date.now,
-    },
   },
   { timestamps: true },
 );
