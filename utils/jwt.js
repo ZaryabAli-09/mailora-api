@@ -1,10 +1,12 @@
 import jwt from "jsonwebtoken";
 
-const SECRET = process.env.JWT_SECRET || "your-secret-key-change-in-production";
+const SECRET = process.env.JWT_SECRET;
 const COOKIE_EXPIRES = 7 * 24 * 60 * 60 * 1000; // 7 days
 
 export function generateToken(userId, email) {
-  return jwt.sign({ userId, email }, SECRET, { expiresIn: "7d" });
+  return jwt.sign({ _id: userId, email }, SECRET, {
+    expiresIn: process.env.JWT_EXPIRES_IN || "30d",
+  });
 }
 
 export function verifyToken(token) {
@@ -16,18 +18,18 @@ export function verifyToken(token) {
 }
 
 export function setAuthCookie(res, token) {
-  res.cookie("authToken", token, {
+  res.cookie(process.env.AUTH_COOKIE_NAME || "authToken", token, {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
-    maxAge: COOKIE_EXPIRES,
+    sameSite: "none",
+    maxAge: AUTH_COOKIE_EXPIRES,
   });
 }
 
 export function clearAuthCookie(res) {
-  res.clearCookie("authToken", {
+  res.clearCookie(process.env.AUTH_COOKIE_NAME || "authToken", {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
-    sameSite: "strict",
+    sameSite: "none",
   });
 }

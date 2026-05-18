@@ -1,11 +1,11 @@
 import crypto from "crypto";
-
+import bcrypt from "bcryptjs";
 export function hashPassword(password) {
-  return crypto.createHash("sha256").update(password).digest("hex");
+  return bcrypt.hashSync(password, 12);
 }
 
 export function verifyPassword(password, hash) {
-  return hashPassword(password) === hash;
+  return bcrypt.compareSync(password, hash);
 }
 
 export function generateOtp() {

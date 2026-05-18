@@ -1,4 +1,4 @@
-import User from "../models/user.model.js";
+import { User } from "../models/user.model.js";
 import {
   hashPassword,
   verifyPassword,
@@ -23,7 +23,7 @@ export async function signUp(req, res, next) {
     }
 
     const existingUser = await User.findOne({
-      email: email.toLowerCase(),
+      email: email,
     });
     if (existingUser) {
       throw new ApiError(409, "Email is already registered");
@@ -31,7 +31,7 @@ export async function signUp(req, res, next) {
 
     const otp = generateOtp();
     const passwordHash = hashPassword(password);
-    const expiresAt = new Date(Date.now() + 5 * 60 * 1000);
+    const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
     await User.findOneAndUpdate(
       { email: email },
@@ -44,7 +44,7 @@ export async function signUp(req, res, next) {
       { upsert: true, new: true },
     );
 
-    const emailSent = await sendOtpEmail(email, otp);
+    const emailSent = await sendOtpEmail(email, otp); // Send OTP email
     if (!emailSent) {
       throw new ApiError(500, "Failed to send OTP email");
     }
@@ -81,6 +81,7 @@ export async function verifyOtp(req, res, next) {
     }
 
     const apiKey = generateApiKey();
+
     const token = generateToken(user._id, user.email);
 
     await User.findByIdAndUpdate(
@@ -118,7 +119,7 @@ export async function login(req, res, next) {
       throw new ApiError(400, "Email and password are required");
     }
 
-    const user = await User.findOne({ email: email.toLowerCase() });
+    const user = await User.findOne({ email: email });
     if (!user || !verifyPassword(password, user.passwordHash)) {
       throw new ApiError(401, "Invalid email or password");
     }

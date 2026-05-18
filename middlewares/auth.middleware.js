@@ -1,7 +1,8 @@
 import { verifyToken } from "../utils/jwt.js";
 import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
-export function protectRoute(req, res, next) {
+import { User } from "../models/user.model.js";
+export async function protectRoute(req, res, next) {
   try {
     const token = req.cookies?.authToken;
 
@@ -13,7 +14,7 @@ export function protectRoute(req, res, next) {
     if (!decoded) {
       throw new ApiError(401, "Invalid authentication token");
     }
-    
+
     const id = decoded._id;
 
     if (!id) {
@@ -24,6 +25,10 @@ export function protectRoute(req, res, next) {
 
     if (!user) {
       throw new ApiError(401, "User not found");
+    }
+
+    if (user.account === "suspended") {
+      throw new ApiError(403, "Account is suspended");
     }
 
     req.user = decoded;
