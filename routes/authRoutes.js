@@ -10,10 +10,12 @@ import { protectRoute } from "../middlewares/authMiddleware.js";
 
 const router = express.Router();
 
-router.post("/auth/signup", signUp);
-router.post("/auth/verify-otp", verifyOtp);
-router.post("/auth/login", login);
-router.post("/auth/logout", protectRoute, logout);
-router.get("/auth/me", protectRoute, getCurrentUser);
+// authentication routes
+
+router.post("/auth/signup", signUp); // register a new user and send OTP to email for verification
+router.post("/auth/verify-otp", verifyOtp); // verify OTP and activate user account
+router.post("/auth/login", login); // login user
+router.post("/auth/logout", protectRoute, logout); // logout user and clear authentication cookies
+router.get("/auth/me", protectRoute, getCurrentUser); // get current user details (protected route, requires authentication)
 
 export default router;

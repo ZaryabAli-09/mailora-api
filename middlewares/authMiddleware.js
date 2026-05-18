@@ -13,6 +13,18 @@ export function protectRoute(req, res, next) {
     if (!decoded) {
       throw new ApiError(401, "Invalid authentication token");
     }
+    
+    const id = decoded._id;
+
+    if (!id) {
+      throw new ApiError(401, "Invalid authentication token");
+    }
+
+    const user = await User.findById(id).select("-passwordHash -otp");
+
+    if (!user) {
+      throw new ApiError(401, "User not found");
+    }
 
     req.user = decoded;
     next();
