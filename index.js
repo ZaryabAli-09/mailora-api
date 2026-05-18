@@ -8,12 +8,12 @@ import morgan from "morgan";
 import cookieParser from "cookie-parser";
 
 // db config, error middlewares and response handlers imports
-import { errorMiddleware } from "./middlewares/errorMiddleware.js";
+import { errorMiddleware } from "./middlewares/error.middleware.js";
 import { ApiResponse } from "./utils/apiResponse.js";
 import { connectDB } from "./configs/dbConnection.js";
 
 // routes imports
-import authRoutes from "./routes/authRoutes.js";
+import authRoutes from "./routes/auth.routes.js";
 
 // load environment variables
 if (process.env.NODE_ENV !== "production") {
