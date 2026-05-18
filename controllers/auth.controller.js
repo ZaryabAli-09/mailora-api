@@ -24,6 +24,7 @@ export async function signUp(req, res, next) {
 
     const existingUser = await User.findOne({
       email: email,
+      accountStatus: { $eq: "activated" },
     });
     if (existingUser) {
       throw new ApiError(409, "Email is already registered");
@@ -33,20 +34,17 @@ export async function signUp(req, res, next) {
     const passwordHash = hashPassword(password);
     const expiresAt = new Date(Date.now() + 5 * 60 * 1000); // 5 minutes
 
-    await User.findOneAndUpdate(
-      { email: email },
-      {
-        email: email,
-        username,
-        passwordHash,
-        otp: { code: otp, expiresAt },
-      },
-      { upsert: true, new: true },
-    );
+    await User({
+      email,
+      username,
+      passwordHash,
+      otp: { code: otp, expiresAt },
+    }).save();
 
     const emailSent = await sendOtpEmail(email, otp); // Send OTP email
     if (!emailSent) {
       throw new ApiError(500, "Failed to send OTP email");
+      await User.findOneAndDelete({ email: email }); // Clean up user if email fails to send
     }
 
     return res.json(new ApiResponse({ email }, "OTP sent successfully"));

@@ -11,7 +11,7 @@ const transporter = nodemailer.createTransport({
 export async function sendOtpEmail(email, otp) {
   try {
     const mailOptions = {
-      from: process.env.EMAIL_FROM || process.env.EMAIL_USER,
+      from: process.env.EMAIL_USER,
       to: email,
       subject: "Your Mailora OTP Code",
       html: `

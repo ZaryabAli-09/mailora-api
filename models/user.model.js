@@ -6,7 +6,6 @@ const userSchema = new mongoose.Schema(
     username: {
       type: String,
       required: true,
-      unique: true,
       trim: true,
     },
     email: {
@@ -25,10 +24,10 @@ const userSchema = new mongoose.Schema(
       enum: ["user", "admin"],
       default: "user",
     },
-    account: {
+    accountStatus: {
       type: String,
-      enum: ["activated", "suspended"],
-      default: "activated",
+      enum: ["pending", "activated", "suspended"],
+      default: "pending",
     },
     apiKey: {
       type: String,
