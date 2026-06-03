@@ -22,7 +22,7 @@ export function setAuthCookie(res, token) {
     httpOnly: true,
     secure: process.env.NODE_ENV === "production",
     sameSite: "none",
-    maxAge: AUTH_COOKIE_EXPIRES,
+    maxAge: COOKIE_EXPIRES,
   });
 }
 

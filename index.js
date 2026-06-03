@@ -1,4 +1,5 @@
 // libraries imports
+import "dotenv/config";
 import express from "express";
 import dotenv from "dotenv";
 import cors from "cors";
@@ -15,7 +16,7 @@ import { connectDB } from "./configs/dbConnection.js";
 // routes imports
 import authRoutes from "./routes/auth.routes.js";
 
-// load environment variables
+// load environment variables in development as a fallback
 if (process.env.NODE_ENV !== "production") {
   dotenv.config();
 }

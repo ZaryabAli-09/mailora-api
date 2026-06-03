@@ -14,14 +14,17 @@ export async function signUp(req, res, next) {
   try {
     let { email, username, password } = req.body;
 
+    // Normalize and validate input
     email = email?.toLowerCase().trim();
     username = username?.trim();
     password = password?.trim();
 
+    // Basic validation
     if (!email || !username || !password) {
       throw new ApiError(400, "Email, username, and password are required");
     }
 
+    // Check if email is already registered with an activated account
     const existingUser = await User.findOne({
       email: email,
       accountStatus: { $eq: "activated" },
@@ -42,9 +45,10 @@ export async function signUp(req, res, next) {
     }).save();
 
     const emailSent = await sendOtpEmail(email, otp); // Send OTP email
+
     if (!emailSent) {
-      throw new ApiError(500, "Failed to send OTP email");
       await User.findOneAndDelete({ email: email }); // Clean up user if email fails to send
+      throw new ApiError(500, "Failed to send OTP email");
     }
 
     return res.json(new ApiResponse({ email }, "OTP sent successfully"));
@@ -55,7 +59,7 @@ export async function signUp(req, res, next) {
 
 export async function verifyOtp(req, res, next) {
   try {
-    const { email, otp } = req.body;
+    let { email, otp } = req.body;
 
     email = email?.toLowerCase().trim();
     otp = otp?.trim();
@@ -70,7 +74,6 @@ export async function verifyOtp(req, res, next) {
     }
 
     if (user.otp.expiresAt < new Date()) {
-      await User.findByIdAndUpdate(user._id, { otp: null });
       throw new ApiError(410, "OTP expired");
     }
 
@@ -84,7 +87,7 @@ export async function verifyOtp(req, res, next) {
 
     await User.findByIdAndUpdate(
       user._id,
-      { otp: null, apiKey },
+      { otp: null, apiKey, accountStatus: "activated" },
       { new: true },
     );
 

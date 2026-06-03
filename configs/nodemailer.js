@@ -1,15 +1,29 @@
+import "dotenv/config";
 import nodemailer from "nodemailer";
 
-const transporter = nodemailer.createTransport({
-  service: process.env.EMAIL_SERVICE || "gmail",
-  auth: {
-    user: process.env.EMAIL_USER,
-    pass: process.env.EMAIL_PASSWORD,
-  },
-});
+function createTransporter() {
+  const emailUser = process.env.EMAIL_USER;
+  const emailPassword = process.env.EMAIL_PASSWORD;
+
+  if (!emailUser || !emailPassword) {
+    throw new Error(
+      "Missing email credentials: EMAIL_USER and EMAIL_PASSWORD are required",
+    );
+  }
+
+  return nodemailer.createTransport({
+    service: process.env.EMAIL_SERVICE || "gmail",
+    auth: {
+      user: emailUser,
+      pass: emailPassword,
+    },
+  });
+}
 
 export async function sendOtpEmail(email, otp) {
   try {
+    const transporter = createTransporter();
+
     const mailOptions = {
       from: process.env.EMAIL_USER,
       to: email,
