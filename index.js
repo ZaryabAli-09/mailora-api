@@ -15,6 +15,7 @@ import { connectDB } from "./configs/dbConnection.js";
 
 // routes imports
 import authRoutes from "./routes/auth.routes.js";
+import integrationsRoutes from "./routes/integrations.routes.js";
 
 // load environment variables in development as a fallback
 if (process.env.NODE_ENV !== "production") {
@@ -74,6 +75,7 @@ app.get("/", (req, res) => {
 
 // routes
 app.use("/api/v1/auth", authRoutes);
+app.use("/api/v1/integrations", integrationsRoutes);
 
 // 404 handler for undefined routes
 app.use((req, res, next) => {

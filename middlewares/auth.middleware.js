@@ -27,7 +27,7 @@ export async function protectRoute(req, res, next) {
       throw new ApiError(401, "User not found");
     }
 
-    if (user.account === "suspended") {
+    if (user.accountStatus === "suspended") {
       throw new ApiError(403, "Account is suspended");
     }
 

@@ -151,7 +151,7 @@ export async function login(req, res, next) {
 
 export async function logout(req, res, next) {
   try {
-    res.clearCookie("authToken", {
+    res.clearCookie(process.env.AUTH_COOKIE_NAME || "authToken", {
       httpOnly: true,
       secure: process.env.NODE_ENV === "production",
       sameSite: "strict",
@@ -165,9 +165,7 @@ export async function logout(req, res, next) {
 
 export async function getCurrentUser(req, res, next) {
   try {
-    const user = await User.findById(req.user.userId).select(
-      "-passwordHash -otp",
-    );
+    const user = await User.findById(req.user._id).select("-passwordHash -otp");
     if (!user) {
       throw new ApiError(404, "User not found");
     }
