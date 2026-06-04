@@ -36,7 +36,6 @@ function sanitizeMailbox(mailbox) {
     googleAccountId: mailbox.googleAccountId,
     scopes: mailbox.scopes,
     pictureUrl: mailbox.pictureUrl,
-    isDefault: mailbox.isDefault,
     status: mailbox.status,
     lastConnectedAt: mailbox.lastConnectedAt,
     lastRefreshedAt: mailbox.lastRefreshedAt,
@@ -50,6 +49,20 @@ function sanitizeMailbox(mailbox) {
 export async function getGmailConnectUrl(req, res, next) {
   try {
     const { clientId, redirectUri } = requireGoogleOauthConfig();
+
+    // single-mailbox: check if a connection already exists
+    const existingMailbox = await GmailConnection.findOne({
+      userId: req.user._id,
+      status: "connected",
+    });
+
+    if (existingMailbox) {
+      throw new ApiError(
+        400,
+        `Gmail is already connected (${existingMailbox.emailAddress}). Use the replace endpoint to change it.`,
+      );
+    }
+
     const state = jwt.sign(
       { userId: req.user._id, purpose: "gmail-connect" },
       process.env.JWT_SECRET,
@@ -73,6 +86,44 @@ export async function getGmailConnectUrl(req, res, next) {
           scopes: GOOGLE_SCOPES,
         },
         "Google connect URL generated successfully",
+        200,
+      ),
+    );
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function replaceGmailConnection(req, res, next) {
+  try {
+    // Note: We don't revoke here because we want the old connection to keep working
+    // until the new one is successfully authenticated in the callback.
+    // The handleGmailCallback will use findOneAndUpdate by userId, which replaces the record.
+
+    const { clientId, redirectUri } = requireGoogleOauthConfig();
+    const state = jwt.sign(
+      { userId: req.user._id, purpose: "gmail-connect" },
+      process.env.JWT_SECRET,
+      { expiresIn: "15m" },
+    );
+
+    const authUrl = new URL("https://accounts.google.com/o/oauth2/v2/auth");
+    authUrl.searchParams.set("client_id", clientId);
+    authUrl.searchParams.set("redirect_uri", redirectUri);
+    authUrl.searchParams.set("response_type", "code");
+    authUrl.searchParams.set("scope", GOOGLE_SCOPES.join(" "));
+    authUrl.searchParams.set("access_type", "offline");
+    authUrl.searchParams.set("prompt", "consent");
+    authUrl.searchParams.set("include_granted_scopes", "true");
+    authUrl.searchParams.set("state", state);
+
+    return res.json(
+      new ApiResponse(
+        {
+          authUrl: authUrl.toString(),
+          scopes: GOOGLE_SCOPES,
+        },
+        "Replacement Google connect URL generated successfully",
         200,
       ),
     );
@@ -153,33 +204,37 @@ export async function handleGmailCallback(req, res, next) {
       throw new ApiError(400, "Google account email was not returned by OAuth");
     }
 
+    // single-mailbox: replace or upsert the user's gmail connection record
     const existingMailbox = await GmailConnection.findOne({
       userId: req.user._id,
-      emailAddress,
     });
 
-    const refreshTokenEncrypted = tokenData.refresh_token
+    // Only reuse existing refresh token if it's the same email address
+    let refreshTokenEncrypted = tokenData.refresh_token
       ? encryptSecret(tokenData.refresh_token)
-      : existingMailbox?.refreshTokenEncrypted;
+      : null;
+
+    if (
+      !refreshTokenEncrypted &&
+      existingMailbox &&
+      existingMailbox.emailAddress === emailAddress
+    ) {
+      refreshTokenEncrypted = existingMailbox.refreshTokenEncrypted;
+    }
 
     if (!refreshTokenEncrypted) {
       throw new ApiError(
         400,
-        "Google did not return a refresh token. Reconnect the account and approve offline access.",
+        "Google did not return a refresh token. Please ensure you approve offline access.",
       );
     }
 
-    const hasDefaultMailbox = await GmailConnection.exists({
-      userId: req.user._id,
-      isDefault: true,
-      status: "connected",
-    });
-
     const mailbox = await GmailConnection.findOneAndUpdate(
-      { userId: req.user._id, emailAddress },
+      { userId: req.user._id },
       {
         $set: {
           provider: "gmail",
+          emailAddress,
           displayName: userInfo.name || emailAddress,
           googleAccountId: userInfo.id,
           refreshTokenEncrypted,
@@ -199,9 +254,6 @@ export async function handleGmailCallback(req, res, next) {
             tokenType: tokenData.token_type,
             idToken: tokenData.id_token ? true : false,
           },
-          isDefault: hasDefaultMailbox
-            ? existingMailbox?.isDefault || false
-            : true,
         },
       },
       {
@@ -228,11 +280,9 @@ export async function handleGmailCallback(req, res, next) {
 
 export async function listGmailMailboxes(req, res, next) {
   try {
+    // single-mailbox: return the single mailbox if present
     const mailboxes = await GmailConnection.find({ userId: req.user._id }).sort(
-      {
-        isDefault: -1,
-        createdAt: -1,
-      },
+      { createdAt: -1 },
     );
 
     return res.json(
@@ -271,35 +321,13 @@ export async function getGmailMailbox(req, res, next) {
 }
 
 export async function setDefaultGmailMailbox(req, res, next) {
-  try {
-    const mailbox = await GmailConnection.findOne({
-      _id: req.params.mailboxId,
-      userId: req.user._id,
-    });
-
-    if (!mailbox) {
-      throw new ApiError(404, "Gmail mailbox not found");
-    }
-
-    await GmailConnection.updateMany(
-      { userId: req.user._id },
-      { $set: { isDefault: false } },
-    );
-
-    mailbox.isDefault = true;
-    mailbox.status = "connected";
-    await mailbox.save();
-
-    return res.json(
-      new ApiResponse(
-        sanitizeMailbox(mailbox),
-        "Default Gmail mailbox updated successfully",
-        200,
-      ),
-    );
-  } catch (error) {
-    next(error);
-  }
+  // Single-mailbox mode: endpoint unsupported
+  return next(
+    new ApiError(
+      404,
+      "Setting default mailbox is not supported in single-mailbox mode.",
+    ),
+  );
 }
 
 export async function disconnectGmailMailbox(req, res, next) {
@@ -315,28 +343,9 @@ export async function disconnectGmailMailbox(req, res, next) {
 
     mailbox.status = "revoked";
     mailbox.revokedAt = new Date();
-    mailbox.isDefault = false;
     mailbox.accessTokenEncrypted = undefined;
     mailbox.accessTokenExpiresAt = undefined;
     await mailbox.save();
-
-    const remainingActiveDefault = await GmailConnection.findOne({
-      userId: req.user._id,
-      isDefault: true,
-      status: "connected",
-    });
-
-    if (!remainingActiveDefault) {
-      const fallbackMailbox = await GmailConnection.findOne({
-        userId: req.user._id,
-        status: "connected",
-      }).sort({ createdAt: 1 });
-
-      if (fallbackMailbox) {
-        fallbackMailbox.isDefault = true;
-        await fallbackMailbox.save();
-      }
-    }
 
     return res.json(
       new ApiResponse(

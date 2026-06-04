@@ -1,6 +1,7 @@
 import express from "express";
 import {
   getGmailConnectUrl,
+  replaceGmailConnection,
   handleGmailCallback,
   listGmailMailboxes,
   getGmailMailbox,
@@ -12,7 +13,9 @@ import { protectRoute } from "../middlewares/auth.middleware.js";
 const router = express.Router();
 
 router.get("/gmail/connect-url", protectRoute, getGmailConnectUrl);
+router.get("/gmail/replace-url", protectRoute, replaceGmailConnection);
 router.get("/gmail/callback", protectRoute, handleGmailCallback);
+
 router.get("/gmail/mailboxes", protectRoute, listGmailMailboxes);
 router.get("/gmail/mailboxes/:mailboxId", protectRoute, getGmailMailbox);
 router.patch(

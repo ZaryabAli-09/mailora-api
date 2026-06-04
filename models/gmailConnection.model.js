@@ -45,11 +45,6 @@ const gmailConnectionSchema = new mongoose.Schema(
       type: String,
       trim: true,
     },
-    isDefault: {
-      type: Boolean,
-      default: false,
-      index: true,
-    },
     status: {
       type: String,
       enum: ["connected", "revoked", "error"],
@@ -74,8 +69,8 @@ const gmailConnectionSchema = new mongoose.Schema(
   { timestamps: true },
 );
 
-gmailConnectionSchema.index({ userId: 1, emailAddress: 1 }, { unique: true });
-gmailConnectionSchema.index({ userId: 1, isDefault: 1 });
+// one gmail connection per user/provider
+gmailConnectionSchema.index({ userId: 1, provider: 1 }, { unique: true });
 
 const GmailConnection = mongoose.model(
   "GmailConnection",
