@@ -4,6 +4,11 @@ import { ApiError } from "../utils/apiError.js";
 import { ApiResponse } from "../utils/apiResponse.js";
 import { encryptSecret } from "../utils/crypto.js";
 
+// Gmail integration notes:
+// 1. The user starts the OAuth flow by calling /gmail/connect-url.
+// 2. Google returns an authorization code to /gmail/callback.
+// 3. The server exchanges that code for tokens and stores the encrypted refresh token.
+// 4. The Gmail mailbox record is then saved for the current user.
 const GOOGLE_SCOPES = [
   "https://www.googleapis.com/auth/gmail.send",
   "https://www.googleapis.com/auth/userinfo.email",
@@ -12,11 +17,8 @@ const GOOGLE_SCOPES = [
 ];
 
 function requireGoogleOauthConfig() {
-  console.log(
-    process.env.GOOGLE_CLIENT_ID,
-    process.env.GOOGLE_CLIENT_SECRET,
-    process.env.GOOGLE_OAUTH_REDIRECT_URI,
-  );
+  // Debug logging is intentionally commented out to avoid noisy server output.
+  // console.log(process.env.GOOGLE_CLIENT_ID, process.env.GOOGLE_CLIENT_SECRET, process.env.GOOGLE_OAUTH_REDIRECT_URI);
   const clientId = process.env.GOOGLE_CLIENT_ID;
   const clientSecret = process.env.GOOGLE_CLIENT_SECRET;
   const redirectUri = process.env.GOOGLE_OAUTH_REDIRECT_URI;
@@ -52,6 +54,8 @@ function sanitizeMailbox(mailbox) {
 }
 
 export async function getGmailConnectUrl(req, res, next) {
+  // This endpoint creates the Google OAuth URL that the frontend opens.
+  // It prevents duplicate Gmail connections for the same user in single-mailbox mode.
   try {
     const { clientId, redirectUri } = requireGoogleOauthConfig();
 
@@ -100,6 +104,8 @@ export async function getGmailConnectUrl(req, res, next) {
 }
 
 export async function replaceGmailConnection(req, res, next) {
+  // This endpoint is used to reconnect Gmail after an existing mailbox is already linked.
+  // The old token record is not removed yet; the callback update replaces it safely.
   try {
     // Note: We don't revoke here because we want the old connection to keep working
     // until the new one is successfully authenticated in the callback.
@@ -138,6 +144,11 @@ export async function replaceGmailConnection(req, res, next) {
 }
 
 export async function handleGmailCallback(req, res, next) {
+  // Main Gmail callback flow:
+  // 1. Validate the OAuth callback parameters and signed JWT state.
+  // 2. Exchange the Google authorization code for access/refresh tokens.
+  // 3. Fetch the user's Google profile email and display name.
+  // 4. Store or update the Gmail connection record for this user.
   try {
     const { clientId, clientSecret, redirectUri } = requireGoogleOauthConfig();
     const { code, state, error: oauthError } = req.query;
@@ -162,6 +173,7 @@ export async function handleGmailCallback(req, res, next) {
       );
     }
 
+    // Step 2: Exchange the short-lived Google authorization code for real OAuth tokens.
     const tokenResponse = await fetch("https://oauth2.googleapis.com/token", {
       method: "POST",
       headers: { "Content-Type": "application/x-www-form-urlencoded" },
@@ -184,6 +196,7 @@ export async function handleGmailCallback(req, res, next) {
       );
     }
 
+    // Step 3: Ask Google for the signed-in account identity so we can save the mailbox email.
     const userInfoResponse = await fetch(
       "https://www.googleapis.com/oauth2/v2/userinfo",
       {
@@ -209,7 +222,8 @@ export async function handleGmailCallback(req, res, next) {
       throw new ApiError(400, "Google account email was not returned by OAuth");
     }
 
-    // single-mailbox: replace or upsert the user's gmail connection record
+    // Step 4: Store the Gmail connection record for the logged-in user.
+    // We keep the old refresh token only when the Google account email matches the current record.
     const existingMailbox = await GmailConnection.findOne({
       userId: req.user._id,
     });
