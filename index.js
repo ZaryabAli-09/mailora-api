@@ -43,11 +43,11 @@ app.use(
 );
 
 app.use(morgan("combined")); // for logging requests in development
-app.use(helmet());
-app.use(express.json());
-app.use(express.urlencoded({ extended: true }));
-app.use(compression());
-app.use(cookieParser());
+app.use(helmet()); // for security
+app.use(express.json()); // for parsing JSON request bodies
+app.use(express.urlencoded({ extended: true })); // for parsing form data
+app.use(compression()); // for compressing responses
+app.use(cookieParser()); // for parsing cookies
 
 // health check endpoint
 app.get("/health", (req, res) => {
