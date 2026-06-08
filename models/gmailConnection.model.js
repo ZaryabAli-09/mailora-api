@@ -4,7 +4,8 @@ import mongoose from "mongoose";
 const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 
 // URL validation regex pattern
-const urlRegex = /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
+const urlRegex =
+  /^(https?:\/\/)?([\da-z\.-]+)\.([a-z\.]{2,6})([\/\w \.-]*)*\/?$/;
 
 // This schema stores the Gmail OAuth connection for one user.
 // It keeps encrypted access/refresh tokens plus the Google profile details
@@ -80,7 +81,10 @@ const gmailConnectionSchema = new mongoose.Schema(
     accessTokenEncrypted: {
       type: String,
       select: false,
-      minlength: [10, "Access token must be at least 10 characters if provided"],
+      minlength: [
+        10,
+        "Access token must be at least 10 characters if provided",
+      ],
       validate: {
         validator: function (v) {
           return !v || v.trim().length > 0; // Allow null or valid token
@@ -103,7 +107,9 @@ const gmailConnectionSchema = new mongoose.Schema(
       type: [String],
       default: [],
       validate: {
-        validator: (v) => Array.isArray(v) && v.every((s) => typeof s === "string" && s.trim().length > 0),
+        validator: (v) =>
+          Array.isArray(v) &&
+          v.every((s) => typeof s === "string" && s.trim().length > 0),
         message: "Scopes must be an array of non-empty strings",
       },
     },
@@ -181,7 +187,9 @@ gmailConnectionSchema.index({ createdAt: -1 });
 gmailConnectionSchema.pre("save", function (next) {
   // Validate that revoked status has revokedAt timestamp
   if (this.status === "revoked" && !this.revokedAt) {
-    return next(new Error("revokedAt timestamp is required when status is 'revoked'"));
+    return next(
+      new Error("revokedAt timestamp is required when status is 'revoked'"),
+    );
   }
 
   // Validate that non-revoked status doesn't have revokedAt
@@ -190,7 +198,10 @@ gmailConnectionSchema.pre("save", function (next) {
   }
 
   // Ensure refreshTokenEncrypted is always selected in the document
-  if (!this.refreshTokenEncrypted || this.refreshTokenEncrypted.trim().length === 0) {
+  if (
+    !this.refreshTokenEncrypted ||
+    this.refreshTokenEncrypted.trim().length === 0
+  ) {
     return next(new Error("Refresh token cannot be empty"));
   }
 
@@ -198,21 +209,28 @@ gmailConnectionSchema.pre("save", function (next) {
 });
 
 // Pre-update validation
-gmailConnectionSchema.pre(["findByIdAndUpdate", "updateOne", "updateMany"], function (next) {
-  const update = this.getUpdate();
+gmailConnectionSchema.pre(
+  ["findByIdAndUpdate", "updateOne", "updateMany"],
+  function (next) {
+    const update = this.getUpdate();
 
-  // Prevent modification of immutable fields
-  if (update.provider) {
-    return next(new Error("Provider cannot be modified after creation"));
-  }
+    // Prevent modification of immutable fields
+    if (update.provider) {
+      return next(new Error("Provider cannot be modified after creation"));
+    }
 
-  // Validate status transitions
-  if (update.status === "revoked" && !update.revokedAt) {
-    return next(new Error("revokedAt timestamp is required when updating status to 'revoked'"));
-  }
+    // Validate status transitions
+    if (update.status === "revoked" && !update.revokedAt) {
+      return next(
+        new Error(
+          "revokedAt timestamp is required when updating status to 'revoked'",
+        ),
+      );
+    }
 
-  next();
-});
+    next();
+  },
+);
 
 const GmailConnection = mongoose.model(
   "GmailConnection",
