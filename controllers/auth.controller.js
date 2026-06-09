@@ -51,7 +51,9 @@ export async function signUp(req, res, next) {
       throw new ApiError(500, "Failed to send OTP email");
     }
 
-    return res.json(new ApiResponse({ email }, "OTP sent successfully"));
+    return res
+      .status(200)
+      .json(new ApiResponse({ email }, "OTP sent successfully"));
   } catch (error) {
     next(error);
   }
@@ -93,7 +95,7 @@ export async function verifyOtp(req, res, next) {
 
     setAuthCookie(res, token);
 
-    return res.json(
+    return res.status(200).json(
       new ApiResponse(
         {
           userId: user._id,
@@ -102,7 +104,6 @@ export async function verifyOtp(req, res, next) {
           apiKey,
         },
         "Account verified successfully",
-        200,
       ),
     );
   } catch (error) {
@@ -169,7 +170,9 @@ export async function getCurrentUser(req, res, next) {
       throw new ApiError(404, "User not found");
     }
 
-    return res.json(new ApiResponse(user, "User retrieved successfully"));
+    return res
+      .status(200)
+      .json(new ApiResponse(user, "User retrieved successfully"));
   } catch (error) {
     next(error);
   }
@@ -186,12 +189,14 @@ export async function regenerateApiKey(req, res, next) {
     user.apiKey = newApiKey;
     await user.save();
 
-    return res.json(
-      new ApiResponse(
-        { apiKey: newApiKey },
-        "API key regenerated successfully",
-      ),
-    );
+    return res
+      .status(200)
+      .json(
+        new ApiResponse(
+          { apiKey: newApiKey },
+          "API key regenerated successfully",
+        ),
+      );
   } catch (error) {
     next(error);
   }
@@ -207,7 +212,9 @@ export async function revokeApiKey(req, res, next) {
     user.apiKey = null;
     await user.save();
 
-    return res.json(new ApiResponse(null, "API key revoked successfully"));
+    return res
+      .status(200)
+      .json(new ApiResponse(null, "API key revoked successfully"));
   } catch (error) {
     next(error);
   }
