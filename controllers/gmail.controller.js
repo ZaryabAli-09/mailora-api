@@ -88,15 +88,14 @@ export async function getGmailConnectUrl(req, res, next) {
     authUrl.searchParams.set("include_granted_scopes", "true");
     authUrl.searchParams.set("state", state);
 
-    return res.json(
+    return res.status(200).json(
       new ApiResponse(
         {
           authUrl: authUrl.toString(),
           scopes: GOOGLE_SCOPES,
         },
-        "Google connect URL generated successfully",
-        200,
-      ),
+        "Google connect URL generated successfully"
+      )
     );
   } catch (error) {
     next(error);
@@ -128,15 +127,14 @@ export async function replaceGmailConnection(req, res, next) {
     authUrl.searchParams.set("include_granted_scopes", "true");
     authUrl.searchParams.set("state", state);
 
-    return res.json(
+    return res.status(200).json(
       new ApiResponse(
         {
           authUrl: authUrl.toString(),
           scopes: GOOGLE_SCOPES,
         },
-        "Replacement Google connect URL generated successfully",
-        200,
-      ),
+        "Replacement Google connect URL generated successfully"
+      )
     );
   } catch (error) {
     next(error);
@@ -283,14 +281,13 @@ export async function handleGmailCallback(req, res, next) {
       },
     );
 
-    return res.json(
+    return res.status(200).json(
       new ApiResponse(
         {
           mailbox: sanitizeMailbox(mailbox),
         },
-        "Gmail connected successfully",
-        200,
-      ),
+        "Gmail connected successfully"
+      )
     );
   } catch (error) {
     next(error);
@@ -304,12 +301,11 @@ export async function listGmailMailboxes(req, res, next) {
       { createdAt: -1 },
     );
 
-    return res.json(
+    return res.status(200).json(
       new ApiResponse(
         mailboxes.map(sanitizeMailbox),
-        "Gmail mailboxes retrieved successfully",
-        200,
-      ),
+        "Gmail mailboxes retrieved successfully"
+      )
     );
   } catch (error) {
     next(error);
@@ -327,12 +323,11 @@ export async function getGmailMailbox(req, res, next) {
       throw new ApiError(404, "Gmail mailbox not found");
     }
 
-    return res.json(
+    return res.status(200).json(
       new ApiResponse(
         sanitizeMailbox(mailbox),
-        "Gmail mailbox retrieved successfully",
-        200,
-      ),
+        "Gmail mailbox retrieved successfully"
+      )
     );
   } catch (error) {
     next(error);
@@ -366,12 +361,11 @@ export async function disconnectGmailMailbox(req, res, next) {
     mailbox.accessTokenExpiresAt = undefined;
     await mailbox.save();
 
-    return res.json(
+    return res.status(200).json(
       new ApiResponse(
         sanitizeMailbox(mailbox),
-        "Gmail mailbox disconnected successfully",
-        200,
-      ),
+        "Gmail mailbox disconnected successfully"
+      )
     );
   } catch (error) {
     next(error);

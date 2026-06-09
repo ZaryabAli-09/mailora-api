@@ -125,14 +125,14 @@ export async function login(req, res, next) {
       throw new ApiError(401, "Invalid email or password");
     }
 
-    if (user.account === "suspended") {
+    if (user.accountStatus === "suspended") {
       throw new ApiError(403, "Account is suspended");
     }
 
     const token = generateToken(user._id, user.email);
     setAuthCookie(res, token);
 
-    return res.json(
+    return res.status(200).json(
       new ApiResponse(
         {
           userId: user._id,
@@ -141,7 +141,6 @@ export async function login(req, res, next) {
           apiKey: user.apiKey,
         },
         "Logged in successfully",
-        200,
       ),
     );
   } catch (error) {
@@ -170,7 +169,45 @@ export async function getCurrentUser(req, res, next) {
       throw new ApiError(404, "User not found");
     }
 
-    return res.json(new ApiResponse(user, "User retrieved successfully", 200));
+    return res.json(new ApiResponse(user, "User retrieved successfully"));
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function regenerateApiKey(req, res, next) {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    const newApiKey = generateApiKey();
+    user.apiKey = newApiKey;
+    await user.save();
+
+    return res.json(
+      new ApiResponse(
+        { apiKey: newApiKey },
+        "API key regenerated successfully",
+      ),
+    );
+  } catch (error) {
+    next(error);
+  }
+}
+
+export async function revokeApiKey(req, res, next) {
+  try {
+    const user = await User.findById(req.user._id);
+    if (!user) {
+      throw new ApiError(404, "User not found");
+    }
+
+    user.apiKey = null;
+    await user.save();
+
+    return res.json(new ApiResponse(null, "API key revoked successfully"));
   } catch (error) {
     next(error);
   }
