@@ -17,6 +17,9 @@ import { connectDB } from "./configs/dbConnection.js";
 import authRoutes from "./routes/auth.routes.js";
 import integrationsRoutes from "./routes/integrations.routes.js";
 
+// queue setup
+import "./queues/mailQueue.js";
+
 // load environment variables in development as a fallback
 if (process.env.NODE_ENV !== "production") {
   dotenv.config();
