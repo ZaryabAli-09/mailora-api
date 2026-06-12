@@ -9,6 +9,7 @@ import {
   disconnectGmailMailbox,
 } from "../controllers/gmail.controller.js";
 import { protectRoute } from "../middlewares/auth.middleware.js";
+import emailRoutes from "./email.routes.js";
 
 const router = express.Router();
 
@@ -38,5 +39,8 @@ router.delete(
   protectRoute,
   disconnectGmailMailbox,
 );
+
+// Email sending routes
+router.use("/", emailRoutes);
 
 export default router;

@@ -1,0 +1,42 @@
+{
+  "name": "mailora-send",
+  "version": "1.0.0",
+  "description": "Official Mailora email sending utility for Node.js applications",
+  "main": "dist/mailoraSend.js",
+  "types": "dist/mailoraSend.d.ts",
+  "scripts": {
+    "build": "tsc --build",
+    "prepack": "npm run build",
+    "test": "jest"
+  },
+  "keywords": ["mailora", "email", "sending", "api", "nodejs"],
+  "author": "Mailora Team",
+  "license": "MIT",
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/ZaryabAli-09/mailora-api.git"
+  },
+  "bugs": {
+    "url": "https://github.com/ZaryabAli-09/mailora-api/issues"
+  },
+  "homepage": "https://github.com/ZaryabAli-09/mailora-api#readme",
+  "engines": {
+    "node": ">=18.0.0"
+  },
+  "peerDependencies": {
+    "axios": "^1.7.7"
+  },
+  "dependencies": {
+    "axios": "^1.7.7"
+  },
+  "devDependencies": {
+    "@types/node": "^22.7.5",
+    "typescript": "^5.5.4",
+    "jest": "^29.7.0",
+    "ts-jest": "^29.1.5"
+  },
+  "files": ["dist/"],
+  "publishConfig": {
+    "access": "public"
+  }
+}
