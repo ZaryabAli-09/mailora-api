@@ -21,9 +21,7 @@ const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
 const normalizeRecipients = (recipients) => {
   if (!recipients) return recipients;
 
-  const normalized = Array.isArray(recipients)
-    ? recipients
-    : [recipients];
+  const normalized = Array.isArray(recipients) ? recipients : [recipients];
 
   return normalized
     .filter((email) => typeof email === "string" && email.trim().length > 0)
@@ -92,7 +90,8 @@ const emailJobSchema = new mongoose.Schema(
       default: {},
       set: normalizeObjectKeys,
       validate: {
-        validator: (value) => typeof value === "object" && !Array.isArray(value),
+        validator: (value) =>
+          typeof value === "object" && !Array.isArray(value),
         message: "Variables must be a plain object",
       },
     },
@@ -100,7 +99,8 @@ const emailJobSchema = new mongoose.Schema(
       type: mongoose.Schema.Types.Mixed,
       default: {},
       validate: {
-        validator: (value) => typeof value === "object" && !Array.isArray(value),
+        validator: (value) =>
+          typeof value === "object" && !Array.isArray(value),
         message: "Metadata must be a plain object",
       },
     },
@@ -187,15 +187,24 @@ emailJobSchema.index({ userId: 1, provider: 1, status: 1, createdAt: -1 });
 emailJobSchema.pre("save", function (next) {
   if (this.provider === "gmail") {
     if (!this.gmailConnectionId) {
-      return next(new Error("Gmail connection ID is required when provider is gmail"));
+      return next(
+        new Error("Gmail connection ID is required when provider is gmail"),
+      );
     }
 
-    if (typeof this.gmailDailyLimit === "number" && this.gmailDailyLimit > GMAIL_DAILY_LIMIT) {
+    if (
+      typeof this.gmailDailyLimit === "number" &&
+      this.gmailDailyLimit > GMAIL_DAILY_LIMIT
+    ) {
       this.gmailDailyLimit = GMAIL_DAILY_LIMIT;
     }
   }
 
-  if (this.provider === "domain" && typeof this.domainDailyLimit === "number" && this.domainDailyLimit < 0) {
+  if (
+    this.provider === "domain" &&
+    typeof this.domainDailyLimit === "number" &&
+    this.domainDailyLimit < 0
+  ) {
     this.domainDailyLimit = 0;
   }
 
@@ -239,14 +248,17 @@ const normalizeUpdatePayload = (update) => {
   return update;
 };
 
-emailJobSchema.pre(["findByIdAndUpdate", "updateOne", "updateMany"], function (next) {
-  try {
-    normalizeUpdatePayload(this.getUpdate());
-    next();
-  } catch (error) {
-    next(error);
-  }
-});
+emailJobSchema.pre(
+  ["findByIdAndUpdate", "updateOne", "updateMany"],
+  function (next) {
+    try {
+      normalizeUpdatePayload(this.getUpdate());
+      next();
+    } catch (error) {
+      next(error);
+    }
+  },
+);
 
 emailJobSchema.methods.markProcessing = function () {
   this.status = "processing";
@@ -281,4 +293,11 @@ emailJobSchema.methods.canRetryJob = function () {
 
 const EmailJob = mongoose.model("EmailJob", emailJobSchema);
 
-export { EmailJob, EMAIL_JOB_STATUS, EMAIL_PROVIDER, GMAIL_DAILY_LIMIT, DEFAULT_MAX_RETRIES, MAX_RETRY_LIMIT };
+export {
+  EmailJob,
+  EMAIL_JOB_STATUS,
+  EMAIL_PROVIDER,
+  GMAIL_DAILY_LIMIT,
+  DEFAULT_MAX_RETRIES,
+  MAX_RETRY_LIMIT,
+};
